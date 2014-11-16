@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<head>
+  <title>Web Audio Recording Sample</title>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <link href="style/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <script src="script/jquery-1.11.1.min.js"></script>
+  <script src="script/bootstrap.min.js"></script>
+  <script src="sdk/recorder.js"></script>
+  <script src="sdk/speex.all.js"></script>
+  <script src="sdk/woogeen.mediarecording.js"></script>
+  <div class="btn-group record-button-container">
+  <button type="button" class="btn btn-block record" id="record">Click here to start record</button>
+  </div>
+  <div class="player-region" id="player-region">
+  </div>
+  <div id="recording-image">
+  </div>
+  <style>
+    .player-region {
+      margin-right: 1em;
+    }
+    .record-button-container {
+      width: 100%;
+      position: absolute;
+      bottom: 1px;
+      left: 0;
+    }
+    .player-container {
+      float: right;
+      margin: 0.5em auto;
+      display: block;
+      clear: both;
+    }
+    .player-container p {
+      margin-bottom: 0;
+    }
+    .audio-time {
+      float: right;
+    }
+    .record-button-recording {
+      background-color: red;
+    }
+    #recording-image {
+      background-image: url('images/recording.png');
+      display: none;
+      width: 195px;
+      height: 127px;
+      position: absolute;
+    }
+  </style>
+  <script>
+    var audioFiles={};
+    var audioFileSeed=1;
+    var playerHtml = "";
+    var recording = false;
+    var getTimeString = function() {
+      var currentTime = new Date();
+      return currentTime.getHours() + ':' + currentTime.getMinutes() + ':' +
+        currentTime.getSeconds();
+    };
+     // Get the length or the audio player, value range is [0.1,0.7).
+    var getLength = function(duration) {
+      return Math.max(0.1, (0.7 - 0.7 * Math.pow(0.9, duration * 0.5)));
+    };
+    var addPlayer = function(audioId, duration) {
+      $('#player-region').append(
+        "<div class=\"player-container\" style=\"width:" + getLength(
+          duration) * 100 + "%\"><p class=\"audio-time\">" +
+        getTimeString() +
+        "</p><button class=\"audio-player btn btn-block player\" data-audio-id='" +
+        audioId + "' data-playing='false'>" + Math.floor(duration) +
+        "s</button>");
+    };
+    var adjustRecordingPosition = function() {
+      var image = $('#recording-image');
+      var top = $(document).height() / 2 - 127 / 2;
+      var left = $(document).width() / 2 - 195 / 2;
+      image.css({
+        top: top + 'px',
+        left: left + 'px'
+      });
+    };
+    var showRecording = function() {
+      $('#recording-image').show();
+    };
+    var hideRecording = function() {
+      $('#recording-image').hide();
+    }
+    var webAudioRecorder = new Woogeen.WebAudioRecorder();
+    $('#record').click(function() {
+      if (recording) {
+        webAudioRecorder.stop();
+        $('#record').removeClass('record-button-recording');
+        $('#record').text('Click here to record');
+        $('#record').prop('disable',false);
+        hideRecording();
+      } else {
+        webAudioRecorder.record();
+        $('#record').prop('disable',true);
+        $('#record').text('Preparing');
+        showRecording();
+      }
+    });
+
+    webAudioRecorder.addEventListener('recorder-stopped', function(e) {
+      audioFiles[audioFileSeed]=e.audio;
+      addPlayer(audioFileSeed, e.length);
+      audioFileSeed++;
+      recording=false;
+    });
+    webAudioRecorder.addEventListener('recorder-started', function(e) {
+      $('#record').addClass('record-button-recording');
+      $('#record').text('Click to stop recording');
+      showRecording();
+      recording = true;
+    });
+    $('#player-region').on('click', '.player', function(e) {
+      var audioId = $(this).attr('data-audio-id');
+      var webaudioplayer = new Woogeen.WebAudioPlayer(audioFiles[audioId]);
+      webaudioplayer.play();
+    });
+    $(window).resize(function() {
+      adjustRecordingPosition();
+    });
+    adjustRecordingPosition();
+  </script>
+</body>

@@ -1,0 +1,11 @@
+{
+  "reponame":"sample-media-recording",
+  "title":"Media Recording",
+  "tooltip":"A sample for media recording",
+  "description":"Media Recording Sample demonstrates how a hybrid app can access device’s microphone and speaker to record and playback audio.",
+  "keywords":["WebRTC","Recording"],
+  "visible" : "true",
+  "appname": "demo.mediarecording",
+  "abbr":"MediaRecording", 
+  "relname":"4.0.0"
+}
